@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 25.0.1700.0
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32422.2
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lottie.Android", "Lottie.Android.csproj", "{C3DB3049-F830-4FB1-844F-3379005C7C78}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lottie.Android", "Lottie.Android\Lottie.Android.csproj", "{C42E14A2-565C-442F-BBB7-95C6BDD4F5FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C3DB3049-F830-4FB1-844F-3379005C7C78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C3DB3049-F830-4FB1-844F-3379005C7C78}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C3DB3049-F830-4FB1-844F-3379005C7C78}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C3DB3049-F830-4FB1-844F-3379005C7C78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C42E14A2-565C-442F-BBB7-95C6BDD4F5FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C42E14A2-565C-442F-BBB7-95C6BDD4F5FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C42E14A2-565C-442F-BBB7-95C6BDD4F5FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C42E14A2-565C-442F-BBB7-95C6BDD4F5FC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {BA8370AE-4B2B-429F-9ADA-65BF99FFB691}
+		SolutionGuid = {EC4B2FAF-7FF5-4F44-843E-CAA7C68B0C67}
 	EndGlobalSection
 EndGlobal
