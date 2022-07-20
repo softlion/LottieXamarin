@@ -9,7 +9,8 @@
     <EnableDefaultItems>false</EnableDefaultItems>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Version>3.0.4</Version>
-  </PropertyGroup>
+    <SupportedOSPlatformVersion>14.2</SupportedOSPlatformVersion>
+   </PropertyGroup>
 
   <Target Name="ValidatePlatform" AfterTargets="BeforeCompile">
     <Error Code="1" Text="Can not build iOS binding project on Windows" Condition="$([MSBuild]::IsOSPlatform('windows'))" />

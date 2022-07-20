@@ -7,7 +7,8 @@
     
     <EnableDefaultItems>false</EnableDefaultItems>
     <Version>6.0.7</Version>
-    
+    <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+
     <AndroidCodegenTarget>XAJavaInterop1</AndroidCodegenTarget>
     <_EnableInterfaceMembers>true</_EnableInterfaceMembers>
     <AndroidUseAapt2>true</AndroidUseAapt2>
