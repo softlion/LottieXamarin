@@ -1,235 +1,161 @@
-﻿using System.ComponentModel;
-using Airbnb.Lottie;
+﻿using Airbnb.Lottie;
 using Foundation;
-using Lottie.Maui;
-using Microsoft.Maui.Controls.Compatibility.Platform.iOS;
-using Microsoft.Maui.Controls.Platform;
 using UIKit;
+using Microsoft.Maui.Handlers;
 
-//[assembly: ExportRenderer(typeof(AnimationView), typeof(AnimationViewRenderer)), Preserve(AllMembers = true)]
+namespace Lottie.Maui.Platforms;
 
-namespace Lottie.Platforms.Ios
+internal class AnimationViewHandler : ViewHandler<IAnimationView, LOTAnimationView>
 {
-    public class AnimationViewRenderer : ViewRenderer<AnimationView, LOTAnimationView>
+    private UITapGestureRecognizer? gestureRecognizer;
+    private int repeatCount = 1;
+
+    private AnimationView RealVirtualView => (AnimationView)VirtualView;
+
+    public static IPropertyMapper<IAnimationView, AnimationViewHandler> Mapper = new PropertyMapper<IAnimationView, AnimationViewHandler>(ViewMapper)
     {
-        private LOTAnimationCompletionBlock _animationCompletionBlock;
-        private LOTAnimationView _animationView;
-        private UITapGestureRecognizer _gestureRecognizer;
-        private int repeatCount = 1;
+        [nameof(IAnimationView.Animation)] = MapAnimation,
+    };
 
-        protected override void OnElementChanged(ElementChangedEventArgs<AnimationView> e)
+    public static CommandMapper<IAnimationView, AnimationViewHandler> CommandMapper = new(ViewCommandMapper)
+    {
+        //[nameof(IAnimationView.FireClicked)] = MapFireClicked
+    };
+
+
+    public AnimationViewHandler(IPropertyMapper? mapper = null, CommandMapper? commandMapper = null) : base(mapper ?? Mapper, commandMapper ?? CommandMapper)
+    {
+    }
+
+    protected override LOTAnimationView CreatePlatformView()
+    {
+        var animationView = new LOTAnimationView
         {
-            base.OnElementChanged(e);
+            AutoresizingMask = UIViewAutoresizing.All,
+            ContentMode = UIViewContentMode.ScaleAspectFit,
+            LoopAnimation = e.NewElement.RepeatMode == RepeatMode.Infinite,
+            AnimationSpeed = e.NewElement.Speed,
+            AnimationProgress = e.NewElement.Progress,
+            CacheEnable = e.NewElement.CacheComposition,
+            CompletionBlock = new LOTAnimationCompletionBlock(AnimationCompletionBlock)
+        };
 
-            if (e == null)
-                return;
+        return animationView;
+    }
 
-            if (e.OldElement != null)
-            {
-                CleanupResources();
-            }
+    protected override void ConnectHandler(LOTAnimationView animationView)
+    {
+        var element = RealVirtualView;
+        
+        element.PlayCommand = new Command(() =>
+        {
+            animationView.PlayWithCompletion(AnimationCompletionBlock);
+            element.InvokePlayAnimation();
+        });
+        element.PauseCommand = new Command(() =>
+        {
+            animationView.Pause();
+            element.InvokePauseAnimation();
+        });
+        element.ResumeCommand = new Command(() =>
+        {
+            animationView.PlayWithCompletion(AnimationCompletionBlock);
+            element.InvokeResumeAnimation();
+        });
+        element.StopCommand = new Command(() =>
+        {
+            animationView.Stop();
+            element.InvokeStopAnimation();
+        });
+        element.ClickCommand = new Command(() =>
+        {
+            //_animationView.Click();
+            //element.InvokeClick();
+        });
 
-            if (e.NewElement != null)
-            {
-                if (Control == null)
-                {
-                    _animationCompletionBlock = new LOTAnimationCompletionBlock(AnimationCompletionBlock);
+        element.PlayMinAndMaxFrameCommand = new Command(parameter =>
+        {
+            if (parameter is (int minFrame, int maxFrame))
+                animationView.PlayFromFrame(NSNumber.FromInt32(minFrame), NSNumber.FromInt32(maxFrame), AnimationCompletionBlock);
+        });
+        element.PlayMinAndMaxProgressCommand = new Command((parameter) =>
+        {
+            if (parameter is (float minProgress, float maxProgress))
+                animationView.PlayFromProgress(minProgress, maxProgress, AnimationCompletionBlock);
+        });
+        element.ReverseAnimationSpeedCommand = new Command(() => animationView.AutoReverseAnimation = !animationView.AutoReverseAnimation);
 
-                    _animationView = new LOTAnimationView()
-                    {
-                        AutoresizingMask = UIViewAutoresizing.All,
-                        ContentMode = UIViewContentMode.ScaleAspectFit,
-                        LoopAnimation = e.NewElement.RepeatMode == RepeatMode.Infinite,
-                        AnimationSpeed = e.NewElement.Speed,
-                        AnimationProgress = e.NewElement.Progress,
-                        CacheEnable = e.NewElement.CacheComposition,
-                        CompletionBlock = _animationCompletionBlock
-                    };
+        animationView.CacheEnable = element.CacheComposition;
+        animationView.AnimationSpeed = element.Speed;
+        animationView.LoopAnimation = element.RepeatMode == RepeatMode.Infinite;
+        animationView.AnimationProgress = element.Progress;
+        gestureRecognizer = new (element.InvokeClick);
+        animationView.AddGestureRecognizer(gestureRecognizer);
 
-                    var composition = e.NewElement.GetAnimation();
-                    _animationView.SceneModel = composition;
-                    e.NewElement.InvokeAnimationLoaded(composition);
+        base.ConnectHandler(animationView);
+    }
 
-                    e.NewElement.PlayCommand = new Command(() =>
-                    {
-                        _animationView.PlayWithCompletion(AnimationCompletionBlock);
-                        e.NewElement.InvokePlayAnimation();
-                    });
-                    e.NewElement.PauseCommand = new Command(() =>
-                    {
-                        _animationView.Pause();
-                        e.NewElement.InvokePauseAnimation();
-                    });
-                    e.NewElement.ResumeCommand = new Command(() =>
-                    {
-                        _animationView.PlayWithCompletion(AnimationCompletionBlock);
-                        e.NewElement.InvokeResumeAnimation();
-                    });
-                    e.NewElement.StopCommand = new Command(() =>
-                    {
-                        _animationView.Stop();
-                        e.NewElement.InvokeStopAnimation();
-                    });
-                    e.NewElement.ClickCommand = new Command(() =>
-                    {
-                        //_animationView.Click();
-                        //e.NewElement.InvokeClick();
-                    });
+    protected override void DisconnectHandler(LOTAnimationView animationView)
+    {
+        repeatCount = 1;
 
-                    e.NewElement.PlayMinAndMaxFrameCommand = new Command((object paramter) =>
-                    {
-                        if (paramter is (int minFrame, int maxFrame))
-                            _animationView.PlayFromFrame(NSNumber.FromInt32(minFrame), NSNumber.FromInt32(maxFrame), AnimationCompletionBlock);
-                    });
-                    e.NewElement.PlayMinAndMaxProgressCommand = new Command((object paramter) =>
-                    {
-                        if (paramter is (float minProgress, float maxProgress))
-                            _animationView.PlayFromProgress(minProgress, maxProgress, AnimationCompletionBlock);
-                    });
-                    e.NewElement.ReverseAnimationSpeedCommand = new Command(() => _animationView.AutoReverseAnimation = !_animationView.AutoReverseAnimation);
-
-                    _animationView.CacheEnable = e.NewElement.CacheComposition;
-                    //_animationView.SetFallbackResource(e.NewElement.FallbackResource.);
-                    //_animationView.Composition = e.NewElement.Composition;
-
-                    //TODO: makes animation stop with current default values
-                    //_animationView.SetMinFrame(e.NewElement.MinFrame);
-                    //_animationView.SetMinProgress(e.NewElement.MinProgress);
-                    //_animationView.SetMaxFrame(e.NewElement.MaxFrame);
-                    //_animationView.SetMaxProgress(e.NewElement.MaxProgress);
-
-                    _animationView.AnimationSpeed = e.NewElement.Speed;
-                    _animationView.LoopAnimation = e.NewElement.RepeatMode == RepeatMode.Infinite;
-                    //_animationView.RepeatCount = e.NewElement.RepeatCount;
-                    //if (!string.IsNullOrEmpty(e.NewElement.ImageAssetsFolder))
-                    //    _animationView.ImageAssetsFolder = e.NewElement.ImageAssetsFolder;
-
-                    //TODO: see if this needs to be enabled
-                    //_animationView.ContentScaleFactor = Convert.ToSingle(e.NewElement.Scale);
-
-                    //_animationView.Frame = e.NewElement.Frame;
-                    _animationView.AnimationProgress = e.NewElement.Progress;
-
-                    _gestureRecognizer = new UITapGestureRecognizer(e.NewElement.InvokeClick);
-                    _animationView.AddGestureRecognizer(_gestureRecognizer);
-
-                    SetNativeControl(_animationView);
-                    SetNeedsLayout();
-
-                    if (e.NewElement.AutoPlay || e.NewElement.IsAnimating)
-                        _animationView.PlayWithCompletion(AnimationCompletionBlock);
-
-                    //e.NewElement.Duration = TimeSpan.FromMilliseconds(_animationView.AnimationDuration);
-                }
-            }
+        if (gestureRecognizer != null)
+        {
+            animationView.RemoveGestureRecognizer(gestureRecognizer);
+            gestureRecognizer.Dispose();
+            gestureRecognizer = null;
         }
 
-        protected override void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
+        base.DisconnectHandler(animationView);
+    }
+    
+    static void MapAnimation(AnimationViewHandler handler, IAnimationView item)
+    {
+        var element = handler.RealVirtualView;
+        var composition = element.GetAnimation();
+        handler.PlatformView.SceneModel = composition;
+        element.InvokeAnimationLoaded(composition);
+        if (element.AutoPlay || element.IsAnimating)
+            handler.PlatformView.PlayWithCompletion(handler.AnimationCompletionBlock);
+    }
+
+    // protected override void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
+    // {
+    //     if (e.PropertyName == AnimationView.CacheCompositionProperty.PropertyName)
+    //         PlatformView.CacheEnable = Element.CacheComposition;
+    //
+    //     if (e.PropertyName == AnimationView.SpeedProperty.PropertyName)
+    //         PlatformView.AnimationSpeed = Element.Speed;
+    //
+    //     if (e.PropertyName == AnimationView.RepeatModeProperty.PropertyName)
+    //         PlatformView.LoopAnimation = Element.RepeatMode == RepeatMode.Infinite;
+    //
+    //     if (e.PropertyName == AnimationView.ProgressProperty.PropertyName)
+    //         PlatformView.AnimationProgress = Element.Progress;
+    //
+    //     base.OnElementPropertyChanged(sender, e);
+    // }
+    
+    private void AnimationCompletionBlock(bool animationFinished)
+    {
+        if (animationFinished)
         {
-            if (_animationView == null || Element == null || e == null)
-                return;
+            RealVirtualView?.InvokeFinishedAnimation();
 
-            if (e.PropertyName == AnimationView.AnimationProperty.PropertyName)
+            if (RealVirtualView?.RepeatMode == RepeatMode.Infinite)
             {
-                //CleanupResources();
-                var composition = Element.GetAnimation();
-                _animationView.SceneModel = composition;
-                Element.InvokeAnimationLoaded(composition);
-
-                if (Element.AutoPlay || Element.IsAnimating)
-                    _animationView.PlayWithCompletion(AnimationCompletionBlock);
+                RealVirtualView?.InvokeRepeatAnimation();
+                RealVirtualView?.PlayWithCompletion(AnimationCompletionBlock);
             }
-
-            if (e.PropertyName == AnimationView.CacheCompositionProperty.PropertyName)
-                _animationView.CacheEnable = Element.CacheComposition;
-
-            //_animationView.SetFallbackResource(e.NewElement.FallbackResource.);
-            //_animationView.Composition = e.NewElement.Composition;
-
-            //if (e.PropertyName == AnimationView.MinFrameProperty.PropertyName)
-            //    _animationView.SetMinFrame(Element.MinFrame);
-
-            //if (e.PropertyName == AnimationView.MinProgressProperty.PropertyName)
-            //    _animationView.SetMinProgress(Element.MinProgress);
-
-            //if (e.PropertyName == AnimationView.MaxFrameProperty.PropertyName)
-            //    _animationView.SetMaxFrame(Element.MaxFrame);
-
-            //if (e.PropertyName == AnimationView.MaxProgressProperty.PropertyName)
-            //    _animationView.SetMaxProgress(Element.MaxProgress);
-
-            if (e.PropertyName == AnimationView.SpeedProperty.PropertyName)
-                _animationView.AnimationSpeed = Element.Speed;
-
-            if (e.PropertyName == AnimationView.RepeatModeProperty.PropertyName)
-                _animationView.LoopAnimation = Element.RepeatMode == RepeatMode.Infinite;
-
-            //if (e.PropertyName == AnimationView.RepeatCountProperty.PropertyName)
-            //    _animationView.RepeatCount = Element.RepeatCount;
-
-            //if (e.PropertyName == AnimationView.ImageAssetsFolderProperty.PropertyName && !string.IsNullOrEmpty(Element.ImageAssetsFolder))
-            //    _animationView.ImageAssetsFolder = Element.ImageAssetsFolder;
-
-            //if (e.PropertyName == AnimationView.ScaleProperty.PropertyName)
-            //    _animationView.Scale = Element.Scale;
-
-            //if (e.PropertyName == AnimationView.FrameProperty.PropertyName)
-            //    _animationView.Frame = Element.Frame;
-
-            if (e.PropertyName == AnimationView.ProgressProperty.PropertyName)
-                _animationView.AnimationProgress = Element.Progress;
-
-            base.OnElementPropertyChanged(sender, e);
-        }
-
-        private void AnimationCompletionBlock(bool animationFinished)
-        {
-            if (animationFinished)
+            else if (RealVirtualView?.RepeatMode == RepeatMode.Restart && repeatCount < RealVirtualView?.RepeatCount)
             {
-                if (_animationView == null || Element == null)
-                    return;
-
-                Element.InvokeFinishedAnimation();
-
-                // Can be null depending if the user callback is executed very quickly 
-                // and disposes the Xamarin.Forms page containing the Lottie view
-                if (_animationView == null || Element == null)
-                    return;
-
-                if (Element.RepeatMode == RepeatMode.Infinite)
-                {
-                    Element.InvokeRepeatAnimation();
-                    _animationView.PlayWithCompletion(AnimationCompletionBlock);
-                }
-                else if (Element.RepeatMode == RepeatMode.Restart && repeatCount < Element.RepeatCount)
-                {
-                    repeatCount++;
-                    Element.InvokeRepeatAnimation();
-                    _animationView.PlayWithCompletion(AnimationCompletionBlock);
-                }
-                else if (Element.RepeatMode == RepeatMode.Restart && repeatCount == Element.RepeatCount)
-                {
-                    repeatCount = 1;
-                }
+                repeatCount++;
+                RealVirtualView?.InvokeRepeatAnimation();
+                RealVirtualView?.PlayWithCompletion(AnimationCompletionBlock);
             }
-        }
-
-        private void CleanupResources()
-        {
-            repeatCount = 1;
-
-            if (_gestureRecognizer != null)
+            else if (RealVirtualView?.RepeatMode == RepeatMode.Restart && repeatCount == RealVirtualView?.RepeatCount)
             {
-                _animationView?.RemoveGestureRecognizer(_gestureRecognizer);
-                _gestureRecognizer.Dispose();
-                _gestureRecognizer = null;
-            }
-
-            if (_animationView != null)
-            {
-                _animationView.RemoveFromSuperview();
-                _animationView.Dispose();
-                _animationView = null;
+                repeatCount = 1;
             }
         }
     }

@@ -1,13 +1,16 @@
 ﻿using System.Reflection;
 using System.Windows.Input;
 
-namespace Lottie.Maui
-{
-    public class AnimationView : View
-    {
-        //public static readonly BindableProperty ImageProperty = BindableProperty.Create(nameof(Image),
-        //    typeof(ImageSource), typeof(AnimationView), default(ImageSource));
+namespace Lottie.Maui;
 
+public interface IAnimationView : IView
+{
+    //Customizable parts there
+    public object Animation { get; }
+}
+    
+    public class AnimationView : View, IAnimationView
+    {
         public static readonly BindableProperty AnimationProperty = BindableProperty.Create(nameof(Animation),
             typeof(object), typeof(AnimationView), default(object));
 
@@ -19,9 +22,6 @@ namespace Lottie.Maui
 
         public static readonly BindableProperty FallbackResourceProperty = BindableProperty.Create(nameof(FallbackResource),
             typeof(ImageSource), typeof(AnimationView), default(ImageSource));
-
-        //public static readonly BindableProperty CompositionProperty = BindableProperty.Create(nameof(Composition),
-        //    typeof(ILottieComposition), typeof(AnimationView), default(ILottieComposition));
 
         public static readonly BindableProperty MinFrameProperty = BindableProperty.Create(nameof(MinFrame),
             typeof(int), typeof(AnimationView), int.MinValue);
@@ -49,9 +49,6 @@ namespace Lottie.Maui
 
         public static readonly BindableProperty ImageAssetsFolderProperty = BindableProperty.Create(nameof(ImageAssetsFolder),
             typeof(string), typeof(AnimationView), default(string));
-
-        //public static new readonly BindableProperty ScaleProperty = BindableProperty.Create(nameof(Scale),
-        //    typeof(float), typeof(AnimationView), 1.0f);
 
         public static readonly BindableProperty FrameProperty = BindableProperty.Create(nameof(Frame),
             typeof(int), typeof(AnimationView), default(int));
@@ -117,12 +114,6 @@ namespace Lottie.Maui
             get { return (ImageSource)GetValue(FallbackResourceProperty); }
             set { SetValue(FallbackResourceProperty, value); }
         }
-
-        //public ILottieComposition Composition
-        //{
-        //    get { return (ILottieComposition)GetValue(CompositionProperty); }
-        //    set { SetValue(CompositionProperty, value); }
-        //}
 
         /// <summary>
         /// Sets or gets the minimum frame that the animation will start from when playing or looping.
@@ -208,16 +199,6 @@ namespace Lottie.Maui
             get { return (string)GetValue(ImageAssetsFolderProperty); }
             set { SetValue(ImageAssetsFolderProperty, value); }
         }
-
-        /// <summary>
-        /// Set the scale on the current composition. 
-        /// The only cost of this function is re-rendering the current frame so you may call it frequent to scale something up or down.
-        /// </summary>
-        //public new float Scale
-        //{
-        //    get { return (float)GetValue(ScaleProperty); }
-        //    set { SetValue(ScaleProperty, value); }
-        //}
 
         /// <summary>
         /// Sets the progress to the specified frame.
@@ -466,15 +447,5 @@ namespace Lottie.Maui
             AnimationSource = AnimationSource.Stream;
             Animation = stream;
         }
-
-        // setImageAssetDelegate(ImageAssetDelegate assetDelegate) {
-
-        // setFontAssetDelegate(
-
-        // setTextDelegate(TextDelegate textDelegate)
-
-        // setScaleType
-
-        //RenderMode
     }
 }
