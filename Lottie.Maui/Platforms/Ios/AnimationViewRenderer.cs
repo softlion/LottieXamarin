@@ -33,10 +33,6 @@ internal class AnimationViewHandler : ViewHandler<IAnimationView, LOTAnimationVi
         {
             AutoresizingMask = UIViewAutoresizing.All,
             ContentMode = UIViewContentMode.ScaleAspectFit,
-            LoopAnimation = e.NewElement.RepeatMode == RepeatMode.Infinite,
-            AnimationSpeed = e.NewElement.Speed,
-            AnimationProgress = e.NewElement.Progress,
-            CacheEnable = e.NewElement.CacheComposition,
             CompletionBlock = new LOTAnimationCompletionBlock(AnimationCompletionBlock)
         };
 
@@ -46,7 +42,12 @@ internal class AnimationViewHandler : ViewHandler<IAnimationView, LOTAnimationVi
     protected override void ConnectHandler(LOTAnimationView animationView)
     {
         var element = RealVirtualView;
-        
+
+        animationView.LoopAnimation = element.RepeatMode == RepeatMode.Infinite;
+        animationView.AnimationSpeed = element.Speed;
+        animationView.AnimationProgress = element.Progress;
+        animationView.CacheEnable = element.CacheComposition;
+
         element.PlayCommand = new Command(() =>
         {
             animationView.PlayWithCompletion(AnimationCompletionBlock);
@@ -116,7 +117,7 @@ internal class AnimationViewHandler : ViewHandler<IAnimationView, LOTAnimationVi
         handler.PlatformView.SceneModel = composition;
         element.InvokeAnimationLoaded(composition);
         if (element.AutoPlay || element.IsAnimating)
-            handler.PlatformView.PlayWithCompletion(handler.AnimationCompletionBlock);
+            handler.PlatformView.PlayAsync().ContinueWith(t => handler.AnimationCompletionBlock(t.Result));
     }
 
     // protected override void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -145,13 +146,13 @@ internal class AnimationViewHandler : ViewHandler<IAnimationView, LOTAnimationVi
             if (RealVirtualView?.RepeatMode == RepeatMode.Infinite)
             {
                 RealVirtualView?.InvokeRepeatAnimation();
-                RealVirtualView?.PlayWithCompletion(AnimationCompletionBlock);
+                PlatformView?.PlayAsync().ContinueWith(t => AnimationCompletionBlock(t.Result));
             }
             else if (RealVirtualView?.RepeatMode == RepeatMode.Restart && repeatCount < RealVirtualView?.RepeatCount)
             {
                 repeatCount++;
                 RealVirtualView?.InvokeRepeatAnimation();
-                RealVirtualView?.PlayWithCompletion(AnimationCompletionBlock);
+                PlatformView?.PlayAsync().ContinueWith(t => AnimationCompletionBlock(t.Result));
             }
             else if (RealVirtualView?.RepeatMode == RepeatMode.Restart && repeatCount == RealVirtualView?.RepeatCount)
             {

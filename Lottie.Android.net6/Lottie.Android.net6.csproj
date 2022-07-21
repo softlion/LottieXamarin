@@ -6,20 +6,20 @@
     <IsBindingProject>true</IsBindingProject>
     
     <EnableDefaultItems>false</EnableDefaultItems>
-    <Version>6.0.7</Version>
+    <Version>1.0.0</Version>
     <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
 
-    <AndroidCodegenTarget>XAJavaInterop1</AndroidCodegenTarget>
-    <_EnableInterfaceMembers>true</_EnableInterfaceMembers>
-    <AndroidUseAapt2>true</AndroidUseAapt2>
-    <AndroidDexTool>d8</AndroidDexTool>
-    <AndroidLinkTool>r8</AndroidLinkTool>
+<!--    <AndroidCodegenTarget>XAJavaInterop1</AndroidCodegenTarget>-->
+<!--    <_EnableInterfaceMembers>true</_EnableInterfaceMembers>-->
+<!--    <AndroidUseAapt2>true</AndroidUseAapt2>-->
+<!--    <AndroidDexTool>d8</AndroidDexTool>-->
+<!--    <AndroidLinkTool>r8</AndroidLinkTool>-->
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Square.OkIO" Version="1.17.4" />
-    <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.3.1.3" />
-	  <PackageReference Include="Xamarin.Build.Download" Version="0.10.0" PrivateAssets="All" />
+    <PackageReference Include="Square.OkIO" Version="2.10.0.4" />
+    <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.4.2.1" />
+ 	  <PackageReference Include="Xamarin.Build.Download" Version="0.11.2" PrivateAssets="All" />
     <LibraryProjectZip Include="Jars\*.aar" />
     <!--<JavaSourceJar Include="JavaDocs\*.jar" />-->
     <TransformFile Include="Transforms\*.xml" />

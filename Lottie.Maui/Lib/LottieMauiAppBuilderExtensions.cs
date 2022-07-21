@@ -1,5 +1,7 @@
 ﻿using Lottie.Maui;
+#if ANDROID || IOS || MACCATALYST || WINDOWS
 using Lottie.Maui.Platforms;
+#endif
 
 namespace Lottie;
 
